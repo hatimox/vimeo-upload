@@ -6,7 +6,7 @@
  *
  * @constructor
  */
-var RetryHandler = function() {
+var RetryHandler = function () {
   this.interval = 1000; // Start at one second
   this.maxInterval = 60 * 1000; // Don't wait longer than a minute 
 };
@@ -16,7 +16,7 @@ var RetryHandler = function() {
  *
  * @param {function} fn Function to invoke
  */
-RetryHandler.prototype.retry = function(fn) {
+RetryHandler.prototype.retry = function (fn) {
   setTimeout(fn, this.interval);
   this.interval = this.nextInterval_();
 };
@@ -24,7 +24,7 @@ RetryHandler.prototype.retry = function(fn) {
 /**
  * Reset the counter (e.g. after successful request.)
  */
-RetryHandler.prototype.reset = function() {
+RetryHandler.prototype.reset = function () {
   this.interval = 1000;
 };
 
@@ -34,7 +34,7 @@ RetryHandler.prototype.reset = function() {
  *
  * @private
  */
-RetryHandler.prototype.nextInterval_ = function() {
+RetryHandler.prototype.nextInterval_ = function () {
   var interval = this.interval * 2 + this.getRandomInt_(0, 1000);
   return Math.min(interval, this.maxInterval);
 };
@@ -46,7 +46,7 @@ RetryHandler.prototype.nextInterval_ = function() {
  * @param {number} max Upper bounds
  * @private
  */
-RetryHandler.prototype.getRandomInt_ = function(min, max) {
+RetryHandler.prototype.getRandomInt_ = function (min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 };
 
@@ -77,8 +77,8 @@ RetryHandler.prototype.getRandomInt_ = function(min, max) {
  * @param {function} [options.onProgress] Callback for status for the in-progress upload
  * @param {function} [options.onError] Callback if upload fails
  */
-var MediaUploader = function(options) {
-  var noop = function() {};
+var MediaUploader = function (options) {
+  var noop = function () { };
   this.isCordovaApp = options.isCordovaApp;
   this.realUrl = options.realUrl;
   this.file = options.file;
@@ -109,7 +109,7 @@ var MediaUploader = function(options) {
   this.chunkProgress = 0;
 };
 
-MediaUploader.prototype.destroy = function() {
+MediaUploader.prototype.destroy = function () {
   this.isCordovaApp = null;
   this.realUrl = null;
   this.file = null;
@@ -139,7 +139,7 @@ MediaUploader.prototype.destroy = function() {
 /**
  * Initiate the upload (Get vimeo ticket number and upload url)
  */
-MediaUploader.prototype.upload = function() {
+MediaUploader.prototype.upload = function () {
 
   var xhr = new XMLHttpRequest();
 
@@ -147,14 +147,14 @@ MediaUploader.prototype.upload = function() {
   xhr.setRequestHeader('Authorization', 'Bearer ' + this.token);
   xhr.setRequestHeader('Content-Type', 'application/json');
 
-  xhr.onload = function(e) {
+  xhr.onload = function (e) {
     // get vimeo upload  url, user (for available quote), ticket id and complete url
     if (e.target.status < 400) {
       var response = JSON.parse(e.target.responseText);
       this.url = response.upload_link_secure;
       this.user = response.user;
       this.ticket_id = response.ticket_id;
-      this.complete_url = "https://api.vimeo.com"+response.complete_uri;
+      this.complete_url = "https://api.vimeo.com" + response.complete_uri;
       this.sendFile_();
     } else {
       this.onUploadError_(e);
@@ -163,13 +163,13 @@ MediaUploader.prototype.upload = function() {
 
   xhr.onerror = this.onUploadError_.bind(this);
   xhr.send(JSON.stringify({
-    type:'streaming'
+    type: 'streaming'
   }));
 
   this.currentXHR = xhr;
 };
 
-MediaUploader.prototype.abort = function() {
+MediaUploader.prototype.abort = function () {
   this.currentXHR.abort()
   this.onError("Upload aborted");
 };
@@ -181,9 +181,9 @@ MediaUploader.prototype.abort = function() {
  *
  * @private
  */
-MediaUploader.prototype.sendFile_ = function() {
+MediaUploader.prototype.sendFile_ = function () {
   var content = this.file;
-  var end     = this.file.size;
+  var end = this.file.size;
 
   if (this.offset || this.chunkSize) {
     // Only bother to slice the file if we're either resuming or uploading in chunks
@@ -195,18 +195,18 @@ MediaUploader.prototype.sendFile_ = function() {
 
   this.chunkProgress = end
 
-  if(this.isCordovaApp) {
+  if (this.isCordovaApp) {
     // Read the video file, 
     var reader = new FileReader();
 
     reader.onloadend = function (evt) {
-        this.send_(evt.target.result, end);
+      this.send_(evt.target.result, end);
     }.bind(this);
 
     reader.readAsArrayBuffer(content);
 
-  } else{
-    this.send_(content, end); 
+  } else {
+    this.send_(content, end);
   }
 
 };
@@ -217,7 +217,7 @@ MediaUploader.prototype.sendFile_ = function() {
  * Added @ 16 June 2015, .. 
  * @private
  */
-MediaUploader.prototype.send_ = function(content, end) {
+MediaUploader.prototype.send_ = function (content, end) {
   self = this
 
   var xhr = new XMLHttpRequest();
@@ -228,7 +228,7 @@ MediaUploader.prototype.send_ = function(content, end) {
 
   if (xhr.upload) {
     // xhr.upload.addEventListener('progress', this.onProgress);
-    xhr.upload.addEventListener('progress', function(xmlHttpRequestProgressEvent) {
+    xhr.upload.addEventListener('progress', function (xmlHttpRequestProgressEvent) {
       loaded = self.offset + xmlHttpRequestProgressEvent.loaded;
       total = self.file.size;
       self.onProgress(loaded, total);
@@ -246,22 +246,23 @@ MediaUploader.prototype.send_ = function(content, end) {
  * Added @ 16 June 2015, .. 
  * @private
  */
-MediaUploader.prototype.verify_ = function() {
+MediaUploader.prototype.verify_ = function () {
   var xhr = new XMLHttpRequest();
   xhr.open('PUT', this.url, true);
   xhr.setRequestHeader('Content-Length', "0");
   xhr.setRequestHeader('Content-Range', "bytes */*");
-  
-  xhr.onload = function(e) {
-    if (e.target.status == 200 || e.target.status == 201) {
+
+  xhr.onload = function (e) {
+    console.log(e);
+    if (e.target.status == 200 || e.target.status == 201 || e.target.status == 204) {
       // console.log('verify success!!');
-    } else if (e.target.status == 308) {    
+    } else if (e.target.status == 308) {
       // console.log('status 308');
     }
-    
+
   };
 
-  xhr.onerror = function(e) {
+  xhr.onerror = function (e) {
     if (e.target.status && e.target.status < 500) {
       // console.log(e.target.response);
     } else {
@@ -277,7 +278,7 @@ MediaUploader.prototype.verify_ = function() {
  *
  * @private
  */
-MediaUploader.prototype.resume_ = function() {
+MediaUploader.prototype.resume_ = function () {
   self = this
   var xhr = new XMLHttpRequest();
   xhr.open('PUT', this.url, true);
@@ -285,7 +286,7 @@ MediaUploader.prototype.resume_ = function() {
   xhr.setRequestHeader('X-Upload-Content-Type', this.file.type);
   if (xhr.upload) {
     // xhr.upload.addEventListener('progress', this.onProgress);
-    xhr.upload.addEventListener('progress', function(xmlHttpRequestProgressEvent) {
+    xhr.upload.addEventListener('progress', function (xmlHttpRequestProgressEvent) {
       loaded = self.offset + xmlHttpRequestProgressEvent.loaded;
       total = self.file.size;
       self.onProgress(loaded, total);
@@ -305,13 +306,13 @@ MediaUploader.prototype.resume_ = function() {
  *
  * @private
  */
-MediaUploader.prototype.complete_ = function() {
+MediaUploader.prototype.complete_ = function () {
 
   var xhr = new XMLHttpRequest();
   xhr.open('DELETE', this.complete_url, true);
   xhr.setRequestHeader('Authorization', 'Bearer ' + this.token);
 
-  xhr.onload = function(e) {
+  xhr.onload = function (e) {
 
     // Get the video location (videoId)
     if (e.target.status < 400) {
@@ -340,11 +341,11 @@ MediaUploader.prototype.complete_ = function() {
  * @private
  * @param {object} e XHR event
  */
-MediaUploader.prototype.onContentUploadSuccess_ = function(e) {
-
-  if (e.target.status == 200 || e.target.status == 201 || e.target.status == 308) {
+MediaUploader.prototype.onContentUploadSuccess_ = function (e) {
+  console.log(e);
+  if (e.target.status == 200 || e.target.status == 201 || e.target.status == 308 || e.target.status == 204) {
     this.offset = this.chunkProgress;
-  
+
     if (this.offset == this.file.size) {
       this.complete_();
     } else {
@@ -361,7 +362,7 @@ MediaUploader.prototype.onContentUploadSuccess_ = function(e) {
  * @private
  * @param {object} e XHR event
  */
-MediaUploader.prototype.onContentUploadError_ = function(e) {
+MediaUploader.prototype.onContentUploadError_ = function (e) {
   console.error("MediaUploader.prototype.onContentUploadError_ e.target.status: ", e.target.status)
   if (e.target.status && e.target.status < 500) {
     this.onError(e.target.response);
@@ -376,7 +377,7 @@ MediaUploader.prototype.onContentUploadError_ = function(e) {
  * @private
  * @param {object} e XHR event
  */
-MediaUploader.prototype.onCompleteError_ = function(e) {
+MediaUploader.prototype.onCompleteError_ = function (e) {
   console.error("MediaUploader.prototype.onCompleteError_ e.target.response: ", e.target.response)
   this.onError(e.target.response); // TODO - Retries for initial upload
 };
@@ -387,7 +388,7 @@ MediaUploader.prototype.onCompleteError_ = function(e) {
  * @private
  * @param {object} e XHR event
  */
-MediaUploader.prototype.onUploadError_ = function(e) {
+MediaUploader.prototype.onUploadError_ = function (e) {
   console.error("MediaUploader.prototype.onUploadError_ e.target.response: ", e.target.response)
   this.onError(e.target.response); // TODO - Retries for initial upload
 };
@@ -399,9 +400,9 @@ MediaUploader.prototype.onUploadError_ = function(e) {
  * @param {object} [params] Key/value pairs for query string
  * @return {string} query string
  */
-MediaUploader.prototype.buildQuery_ = function(params) {
+MediaUploader.prototype.buildQuery_ = function (params) {
   params = params || {};
-  return Object.keys(params).map(function(key) {
+  return Object.keys(params).map(function (key) {
     return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
   }).join('&');
 };
@@ -414,7 +415,7 @@ MediaUploader.prototype.buildQuery_ = function(params) {
  * @param {object} [params] Query parameters
  * @return {string} URL
  */
-MediaUploader.prototype.buildUrl_ = function(id, params, baseUrl) {
+MediaUploader.prototype.buildUrl_ = function (id, params, baseUrl) {
   var url = baseUrl || 'https://api.vimeo.com/me/videos/';
   if (id) {
     url += id;
