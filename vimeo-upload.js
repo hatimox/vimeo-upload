@@ -18,9 +18,9 @@
  */
 
 ;
-(function(root, factory) {
+(function (root, factory) {
     if (typeof define === 'function' && define.amd) {
-        define([], function() {
+        define([], function () {
             return (root.VimeoUpload = factory())
         })
     } else if (typeof module === 'object' && module.exports) {
@@ -28,7 +28,7 @@
     } else {
         root.VimeoUpload = factory()
     }
-}(this, function() {
+}(this, function () {
 
     // -------------------------------------------------------------------------
     // RetryHandler Class
@@ -39,7 +39,7 @@
      *
      * @constructor
      */
-    var RetryHandler = function() {
+    var RetryHandler = function () {
         this.interval = 1000 // Start at one second
         this.maxInterval = 60 * 1000; // Don't wait longer than a minute
     }
@@ -49,7 +49,7 @@
      *
      * @param {function} fn Function to invoke
      */
-    RetryHandler.prototype.retry = function(fn) {
+    RetryHandler.prototype.retry = function (fn) {
         setTimeout(fn, this.interval)
         this.interval = this.nextInterval_()
     }
@@ -57,7 +57,7 @@
     /**
      * Reset the counter (e.g. after successful request)
      */
-    RetryHandler.prototype.reset = function() {
+    RetryHandler.prototype.reset = function () {
         this.interval = 1000
     }
 
@@ -67,7 +67,7 @@
      *
      * @private
      */
-    RetryHandler.prototype.nextInterval_ = function() {
+    RetryHandler.prototype.nextInterval_ = function () {
         var interval = this.interval * 2 + this.getRandomInt_(0, 1000)
         return Math.min(interval, this.maxInterval)
     }
@@ -79,7 +79,7 @@
      * @param {number} max Upper bounds
      * @private
      */
-    RetryHandler.prototype.getRandomInt_ = function(min, max) {
+    RetryHandler.prototype.getRandomInt_ = function (min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min)
     }
 
@@ -117,9 +117,9 @@
         offset: 0,
         chunkSize: 0,
         retryHandler: new RetryHandler(),
-        onComplete: function() {},
-        onProgress: function() {},
-        onError: function() {}
+        onComplete: function () { },
+        onProgress: function () { },
+        onError: function () { }
     }
 
     /**
@@ -148,7 +148,7 @@
      * @param {function} [options.onProgress] Callback for status for the in-progress upload
      * @param {function} [options.onError] Callback if upload fails
      */
-    var me = function(opts) {
+    var me = function (opts) {
 
         /* copy user options or use default values */
         for (var i in defaults) {
@@ -181,20 +181,20 @@
 
     */
 
-    me.prototype.defaults = function(opts) {
+    me.prototype.defaults = function (opts) {
         return defaults /* TODO $.extend(true, defaults, opts) */
     }
 
     /**
      * Initiate the upload (Get vimeo ticket number and upload url)
      */
-    me.prototype.upload = function() {
+    me.prototype.upload = function () {
         var xhr = new XMLHttpRequest()
         xhr.open(this.httpMethod, this.url, true)
         xhr.setRequestHeader('Authorization', 'Bearer ' + this.token)
         xhr.setRequestHeader('Content-Type', 'application/json')
 
-        xhr.onload = function(e) {
+        xhr.onload = function (e) {
             // get vimeo upload  url, user (for available quote), ticket id and complete url
             if (e.target.status < 400) {
                 var response = JSON.parse(e.target.responseText)
@@ -223,7 +223,7 @@
      *
      * @private
      */
-    me.prototype.sendFile_ = function() {
+    me.prototype.sendFile_ = function () {
         var content = this.file
         var end = this.file.size
 
@@ -238,7 +238,7 @@
         var xhr = new XMLHttpRequest()
         xhr.open('PUT', this.url, true)
         xhr.setRequestHeader('Content-Type', this.contentType)
-            // xhr.setRequestHeader('Content-Length', this.file.size)
+        // xhr.setRequestHeader('Content-Length', this.file.size)
         xhr.setRequestHeader('Content-Range', 'bytes ' + this.offset + '-' + (end - 1) + '/' + this.file.size)
 
         if (xhr.upload) {
@@ -254,7 +254,7 @@
      *
      * @private
      */
-    me.prototype.resume_ = function() {
+    me.prototype.resume_ = function () {
         var xhr = new XMLHttpRequest()
         xhr.open('PUT', this.url, true)
         xhr.setRequestHeader('Content-Range', 'bytes */' + this.file.size)
@@ -272,7 +272,7 @@
      *
      * @param {XMLHttpRequest} xhr Request object
      */
-    me.prototype.extractRange_ = function(xhr) {
+    me.prototype.extractRange_ = function (xhr) {
         var range = xhr.getResponseHeader('Range')
         if (range) {
             this.offset = parseInt(range.match(/\d+/g).pop(), 10) + 1
@@ -287,12 +287,12 @@
      *
      * @private
      */
-    me.prototype.complete_ = function(xhr) {
+    me.prototype.complete_ = function (xhr) {
         var xhr = new XMLHttpRequest()
         xhr.open('DELETE', this.complete_url, true)
         xhr.setRequestHeader('Authorization', 'Bearer ' + this.token)
 
-        xhr.onload = function(e) {
+        xhr.onload = function (e) {
 
             // Get the video location (videoId)
             if (e.target.status < 400) {
@@ -300,7 +300,7 @@
 
                 // Example of location: ' /videos/115365719', extract the video id only
                 var video_id = location.split('/').pop()
-                    // Update the video metadata
+                // Update the video metadata
                 this.onUpdateVideoData_(video_id)
             } else {
                 this.onCompleteError_(e)
@@ -317,14 +317,14 @@
      * @private
      * @param {string} [id] Video Id
      */
-    me.prototype.onUpdateVideoData_ = function(video_id) {
+    me.prototype.onUpdateVideoData_ = function (video_id) {
         var url = this.buildUrl_(video_id, [], defaults.api_url + '/videos/')
         var httpMethod = 'PATCH'
         var xhr = new XMLHttpRequest()
 
         xhr.open(httpMethod, url, true)
         xhr.setRequestHeader('Authorization', 'Bearer ' + this.token)
-        xhr.onload = function(e) {
+        xhr.onload = function (e) {
             // add the metadata
             this.onGetMetadata_(e, video_id)
         }.bind(this)
@@ -341,15 +341,15 @@
      * @param {object} e XHR event
      * @param {string} [id] Video Id
      */
-    me.prototype.onGetMetadata_ = function(e, video_id) {
+    me.prototype.onGetMetadata_ = function (e, video_id) {
         // Get the video location (videoId)
         if (e.target.status < 400) {
             if (e.target.response) {
                 // add the returned metadata to the metadata array
                 var meta = JSON.parse(e.target.response)
-                    // get the new index of the item
+                // get the new index of the item
                 var index = this.metadata.push(meta) - 1
-                    // call the complete method
+                // call the complete method
                 this.onComplete(video_id, index)
             } else {
                 this.onCompleteError_(e)
@@ -365,8 +365,11 @@
      * @private
      * @param {object} e XHR event
      */
-    me.prototype.onContentUploadSuccess_ = function(e) {
-        if (e.target.status == 200 || e.target.status == 201) {
+    me.prototype.onContentUploadSuccess_ = function (e) {
+        console.log('============================');
+        console.log(e);
+        console.log('============================');
+        if (e.target.status == 200 || e.target.status == 201 || e.target.status == 204) {
             this.complete_()
         } else if (e.target.status == 308) {
             this.extractRange_(e.target)
@@ -382,7 +385,7 @@
      * @private
      * @param {object} e XHR event
      */
-    me.prototype.onContentUploadError_ = function(e) {
+    me.prototype.onContentUploadError_ = function (e) {
         if (e.target.status && e.target.status < 500) {
             this.onError(e.target.response)
         } else {
@@ -396,7 +399,7 @@
      * @private
      * @param {object} e XHR event
      */
-    me.prototype.onCompleteError_ = function(e) {
+    me.prototype.onCompleteError_ = function (e) {
         this.onError(e.target.response); // TODO - Retries for initial upload
     }
 
@@ -406,7 +409,7 @@
      * @private
      * @param {object} e XHR event
      */
-    me.prototype.onUploadError_ = function(e) {
+    me.prototype.onUploadError_ = function (e) {
         this.onError(e.target.response); // TODO - Retries for initial upload
     }
 
@@ -417,9 +420,9 @@
      * @param {object} [params] Key/value pairs for query string
      * @return {string} query string
      */
-    me.prototype.buildQuery_ = function(params) {
+    me.prototype.buildQuery_ = function (params) {
         params = params || {}
-        return Object.keys(params).map(function(key) {
+        return Object.keys(params).map(function (key) {
             return encodeURIComponent(key) + '=' + encodeURIComponent(params[key])
         }).join('&')
     }
@@ -432,7 +435,7 @@
      * @param {object} [params] Query parameters
      * @return {string} URL
      */
-    me.prototype.buildUrl_ = function(id, params, baseUrl) {
+    me.prototype.buildUrl_ = function (id, params, baseUrl) {
         var url = baseUrl || defaults.api_url + '/me/videos'
         if (id) {
             url += id
